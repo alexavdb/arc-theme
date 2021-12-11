@@ -6,6 +6,12 @@ The theme was originally designed and developed by [horst3180](https://github.co
 
 This fork aims to keep the theme updated with new toolkit and desktop environment versions, resolve pre-existing issues, and improve and polish the theme while preserving the original visual design.
 
+## Disclaimer
+
+This fork modifies the (transparent) Arc-Dark variant for GTK 2 and GTK 3 to a colour scheme based on [Zenburn](https://kippura.org/zenburnpage/).
+
+The performed changes may have side effects on other variants or toolkits.
+
 ## Arc is available in four variants
 
 ##### Arc
