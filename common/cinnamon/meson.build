@@ -1,5 +1,5 @@
 # supported versions
-cinnamon_versions = ['3.8', '4.0', '4.2', '4.4', '4.6', '4.8', '5.0']
+cinnamon_versions = ['3.8', '4.0', '4.2', '4.4', '4.6', '4.8', '5.0', '5.2']
 
 # cinnamon version
 cinnamon = find_program('cinnamon', required : false)
@@ -50,7 +50,7 @@ foreach variant : get_option('variants')
     output : 'cinnamon-' + variant + '.scss',
     configuration : {
       'variant' : variant,
-      'transparency' : get_option('transparency').to_string(),
+      'transparency' : true.to_string(),
       'sass_path' : meson.current_source_dir() / cinnamon_ver / 'sass',
     }
   )
@@ -67,9 +67,8 @@ foreach variant : get_option('variants')
   )
 
   meson.add_install_script(
-    'sh', '-c',
-    'install -DT' + ' ' +
-    cinnamon_css.full_path() + ' ' +
+    install_file,
+    cinnamon_css.full_path(),
     '$MESON_INSTALL_DESTDIR_PREFIX' / install_dir.get(variant) / common_dirs.get('cinnamon') / 'cinnamon.css'
   )
 
@@ -84,7 +83,7 @@ foreach variant : get_option('variants')
   )
 
   install_data(
-    variant == 'light' ? 'thumbnail.png' : 'thumbnail-dark.png',
+    'thumbnail' / variant + '.png',
     rename : 'thumbnail.png',
     install_dir : prefix / install_dir.get(variant) / common_dirs.get('cinnamon')
   )
