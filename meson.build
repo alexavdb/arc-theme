@@ -1,6 +1,6 @@
 project(
   'arc-theme',
-  version : '20220102',
+  version : '20220105',
   meson_version: '>= 0.53.0',
   license : 'GPL3'
 )
@@ -39,6 +39,17 @@ foreach theme : ['gtk2', 'gtk3', 'gtk4', 'xfwm']
     if inkscape.found()
       inkscape_ver = run_command(inkscape, '--version').stdout().split()[1]
     endif
+    break
+  endif
+endforeach
+
+# glib-compile-resources dependency
+foreach theme : ['gnome-shell', 'gtk3', 'gtk4']
+  if theme in get_option('themes')
+    if theme == 'gnome-shell' and not get_option('gnome_shell_gresource')
+      continue
+    endif
+    glib_compile_resources = find_program('glib-compile-resources')
     break
   endif
 endforeach

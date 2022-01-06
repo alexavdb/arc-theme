@@ -1,9 +1,6 @@
 # supported versions
 gtk4_versions = ['4.0', '4.2']
 
-# glib-compile-resources dependency
-glib_compile_resources = find_program('glib-compile-resources')
-
 # determine gtk4 version
 if get_option('gtk4_version') != ''
   gtk4_full_ver = get_option('gtk4_version')
@@ -62,8 +59,11 @@ input_scss_dark = configure_file(
     'sass_path' : meson.current_source_dir() / gtk4_ver / 'sass',
   }
 )
+
 output_css_dark = 'gtk-main-dark.css'
-gtk4_stylesheet = custom_target(
+gtk4_stylesheets = []
+
+gtk4_stylesheets += custom_target(
   output_css_dark,
   input : input_scss_dark,
   output : output_css_dark,
@@ -86,7 +86,7 @@ foreach variant : get_option('variants')
       }
     )
 
-    gtk4_stylesheet = custom_target(
+    gtk4_stylesheets += custom_target(
       output_css,
       input : input_scss,
       output : output_css,
@@ -143,7 +143,7 @@ foreach variant : get_option('variants')
       '--target=@OUTPUT@',
       '@INPUT@'
     ],
-    depends : [gtk4_assets, gtk4_hidpi_assets, gtk4_stylesheet],
+    depends : [gtk4_assets, gtk4_hidpi_assets, gtk4_stylesheets],
     depend_files : [gtk4_asset_files, gtk4_hidpi_asset_files],
     build_by_default : true
   )

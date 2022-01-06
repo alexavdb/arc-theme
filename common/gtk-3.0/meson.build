@@ -1,6 +1,3 @@
-# glib-compile-resources dependency
-glib_compile_resources = find_program('glib-compile-resources')
-
 # render PNG assets
 
 gtk3_asset_names = run_command(
@@ -30,8 +27,11 @@ input_scss_dark = configure_file(
     'sass_path' : meson.current_source_dir() / 'sass',
   }
 )
+
 output_css_dark = 'gtk-main-dark.css'
-gtk3_stylesheet = custom_target(
+gtk3_stylesheets = []
+
+gtk3_stylesheets += custom_target(
   output_css_dark,
   input : input_scss_dark,
   output : output_css_dark,
@@ -54,7 +54,7 @@ foreach variant : get_option('variants')
       }
     )
 
-    gtk3_stylesheet = custom_target(
+    gtk3_stylesheets += custom_target(
       output_css,
       input : input_scss,
       output : output_css,
@@ -74,8 +74,8 @@ foreach variant : get_option('variants')
 
   foreach asset : gtk3_asset_names
     gresource_xml_array += [
-      '<file preprocess="to-pixdata">assets/' + asset + '.png</file>',
-      '<file preprocess="to-pixdata">assets/' + asset + '@2.png</file>'
+      '<file>assets/' + asset + '.png</file>',
+      '<file>assets/' + asset + '@2.png</file>'
     ]
   endforeach
 
@@ -110,7 +110,7 @@ foreach variant : get_option('variants')
       '--target=@OUTPUT@',
       '@INPUT@'
     ],
-    depends : [gtk3_assets, gtk3_hidpi_assets, gtk3_stylesheet],
+    depends : [gtk3_assets, gtk3_hidpi_assets, gtk3_stylesheets],
     depend_files : [gtk3_asset_files, gtk3_hidpi_asset_files],
     build_by_default : true
   )
