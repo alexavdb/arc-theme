@@ -4,7 +4,9 @@
 
 $ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 $backdrop_transition: 200ms ease-out;
-$button_transition: all 200ms $ease-out-quad;
+$button_transition: all 200ms $ease-out-quad, outline-width 0s;
+$header_radius: if($variant=='light' or $variant=='lighter', 4px, 3px);
+$scale_trough_bg: if($variant != 'dark', $button_border, darken($bg_color, 5%));
 
 $asset_suffix: if($variant=='dark', '-dark', '');
 $darker_asset_suffix: if($variant=='darker', '-dark', $asset_suffix);
@@ -55,6 +57,8 @@ image:disabled {
 textview {
   > text {
     @extend %view;
+
+    background-color: transparent;
 
     > selection { &:focus, & { @extend %selected_items; }}
   }
@@ -122,7 +126,7 @@ gridview {
   }
 }
 
-coverflow cover {//FIXME Arc styling?
+coverflow cover {
   color: $text_color;
   background-color: $base_color;
   border: 1px solid black;
@@ -176,6 +180,10 @@ window.assistant {
     color: $selected_fg_color;
     background-color: $selected_bg_color;
   }
+}
+
+window.aboutdialog image.large-icons {
+  -gtk-icon-size: 128px;
 }
 
 %osd,
@@ -262,6 +270,7 @@ entry {
     border-radius: 3px;
     border-spacing: 5px;
     transition: all 200ms $ease-out-quad;
+    background-clip: padding-box;
 
     &.search { border-radius: 20px; }
 
@@ -277,7 +286,7 @@ entry {
     }
 
     > text > block-cursor {
-      @include entry(block_cursor);//FIXME update drawing w this?
+      @include entry(block_cursor);
     }
 
     &.flat {
@@ -397,7 +406,7 @@ treeview entry {
 /*******************
  * Editable Labels *
  *******************/
-editablelabel > stack > text {//FIXME looks OK in Arc??
+editablelabel > stack > text {
   @include entry(normal);
 }
 
@@ -421,6 +430,7 @@ button {
     border: 1px solid;
     border-radius: 3px;
     transition: $button_transition;
+    background-clip: padding-box;
 
     @include button(normal);
 
@@ -441,8 +451,8 @@ button {
       &:not(:disabled) label:disabled { color: inherit; opacity: 0.6; }
     }
 
-    &:checked:hover { @include button(checked-hover); }//FIXME missing checked-* styles
-    &:checked:active { @include button(checked-active); }//FIXME missing checked-* styles
+    &:checked:hover { @include button(active); }
+    &:checked:active { @include button(active); }
 
     &:disabled {
       @include button(insensitive);
@@ -462,14 +472,14 @@ button {
       transition: none;
 
       &:hover {
-        @include button(undecorated-hover);//FIXME missing style
+        @include button(hover);
         transition: $button_transition;
         transition-duration: 500ms;
       }
       &.keyboard-activating,
       &:active,
       &:checked {
-        @include button(undecorated-active);//FIXME missing style
+        @include button(active);
         transition: $button_transition;
       }
       &:disabled { @include button(undecorated); }
@@ -486,14 +496,10 @@ button {
       padding-right: 12px;
     }
 
+    %image_text_button,
     &.text-button.image-button {
       padding-left: 5px;
       padding-right: 5px;
-
-      label {
-        padding-left: 2px;
-        padding-right: 2px;
-      }
 
       label {
         padding-left: 2px;
@@ -516,6 +522,15 @@ button {
       &.popup { padding-right: 7px; padding-left: 7px; }
     }
 
+    &.arrow-button {
+      padding-left: 10px;
+      padding-right: 10px;
+
+      > box {
+        border-spacing: 4px;
+      }
+    }
+
     @at-root %button_basic_drop_active,
     &:drop(active) {
       color: $drop_target_color;
@@ -523,22 +538,6 @@ button {
       box-shadow: none;
     }
   }
-
-  @at-root %button_selected, & {//FIXME from adwaita, needs arc styling
-    row:selected & {
-      border-color: $selected_borders_color;
-    }
-
-    @at-root %button_selected_flat, &.flat {
-      row:selected & {
-        &:not(:active):not(:checked):not(:hover):not(disabled) {
-          color: $selected_fg_color;
-          border-color: transparent;
-        }
-      }
-    }
-  }
-
 
   // big standalone buttons like in Documents pager
   &.osd {
@@ -612,16 +611,12 @@ button {
     }
   }
 
-  //FIXME From Arc GTK3. Still needed?
-  //.osd .linked:not(.vertical):not(.path-bar) > &:hover:not(:checked):not(:active):not(:only-child),
-  //.osd .linked:not(.vertical):not(.path-bar) > &:hover:not(:checked):not(:active) + &:not(:checked):not(:active) { box-shadow: none; }
-
   // Suggested and Destructive Action buttons
   @each $b_type, $b_color, $b_fg in (suggested-action, $suggested_color, $suggested_fg_color),
                                     (destructive-action, $destructive_color, $destructive_fg_color) {
     &.#{$b_type} {
       @include button(suggested_destructive, $b_color, $b_fg);
-    //  @include focus-ring($fc: $alt_focus_border_color);//FIXME from adw, fix for arc
+      @include focus-ring();
 
       &.flat {
         @include button(undecorated);
@@ -694,6 +689,7 @@ button {
 
   .linked.vertical > & { @extend %linked_vertical; }
 
+  %circular_button,
   menubutton.circular &,
   &.circular { // force circular button shape
     min-width: 24px;
@@ -898,11 +894,9 @@ modelbutton.flat {
 
   @extend %undecorated_button;
 
-  &:hover { background-color: if($variant!='dark', mix($fg_color,$bg_color,5%), mix($fg_color,$bg_color,10%)); }
-
   &:disabled { color: $insensitive_fg_color; }
 
-  &:selected { @extend %selected_items; }
+  &:hover, &:selected { @extend %selected_items; }
 }
 
 modelbutton.flat arrow {
@@ -912,42 +906,32 @@ modelbutton.flat arrow {
 
   &:hover { background: none; }
 
-  &.left { -gtk-icon-source: -gtk-icontheme("go-previous-symbolic"); }
+  &.left { -gtk-icon-source: -gtk-icontheme('pan-start-symbolic'); }
 
-  &.right { -gtk-icon-source: -gtk-icontheme("go-next-symbolic"); }
+  &.right { -gtk-icon-source: -gtk-icontheme('pan-end-symbolic'); }
 }
 
 /* oldstyle toolbar buttons */
 
-.toolbar button {
-  margin: 1px;
-  @extend %undecorated_button;
-
-  &:hover { @include button('hover'); }
-  &:active { @include button('active'); }
-  &:disabled { @include button('insensitive'); }
+.toolbar > button,
+.toolbar > :not(.linked) > button,
+.toolbar :not(.linked) > menubutton > button,
+.toolbar :not(.linked) > scalebutton > button,
+.toolbar :not(.linked) > dropdown > button,
+.toolbar :not(.linked) > colorbutton > button,
+.toolbar :not(.linked) > fontbutton > button,
+.toolbar :not(.linked) > appchooserbutton > button,
+.toolbar :not(.linked) > combobox > box > button {
+  margin: 1px 0;
+  @extend %button_basic_flat;
 }
 
 button.color {
-  padding: 4px;//FIXME 0 in Arc GTK3
+  padding: 2px;
 
-  > colorswatch:only-child {//FIXME very different in Arc GTK3
+  > colorswatch:only-child {
     &, > overlay { border-radius: 0; }
-
-    /*@if $variant == 'light' {//FIXME not in Arc GTK3, remove?
-      box-shadow: 0 1px $shadow_color;
-
-      .osd & { box-shadow: none; }
-    }*/
   }
-
-  /*@if $variant == 'light' {//FIXME not in Arc GTK3, remove?
-    .osd &, & {
-      &:disabled,
-      &:active,
-      &:checked { colorswatch:only-child { box-shadow: none; }}
-    }
-  }*/
 }
 
 /* list buttons */
@@ -1041,7 +1025,7 @@ spinbutton {
     > button + button { border-left-style: none; }
 
     > button:hover:not(:active),
-    > button:hover + button { box-shadow: inset 1px 0 $button_border; }
+    > button:hover:not(:active) + button { box-shadow: inset 1px 0 $button_border; }
 
     > button:disabled + button:not(:disabled):not(:active):not(:checked):not(:hover),
     > button:not(:disabled):not(:active):not(:checked):not(:hover) + button:disabled { box-shadow: inset 1px 0 transparentize($button_border, 0.5); }
@@ -1056,7 +1040,7 @@ spinbutton {
 
     .osd & {
       > button:hover:not(:active),
-      > button:hover + button { box-shadow: inset 1px 0 $osd_button_border; }
+      > button:hover:not(:active) + button { box-shadow: inset 1px 0 $osd_button_border; }
 
       > button:first-child:hover:not(:active),
       > button.up:dir(rtl):hover:not(:active),
@@ -1091,6 +1075,11 @@ dropdown > popover.menu.background > contents { padding: 0; } //allow search ent
 
 dropdown > button > box {
   border-spacing: 6px;
+
+  > stack > row.activatable:hover {
+    background: none;
+    box-shadow: none;
+  }
 }
 
 dropdown,
@@ -1101,15 +1090,16 @@ combobox {
     min-width: 16px;
   }
 
-  // Arc: adjust combobox menu radius for
-  popover.menu > contents {
+  > popover.background.menu > contents {
+    padding: 4px 0;
     border-radius: 2px;
   }
 
   // align menu labels with the button label
   > popover.menu > contents modelbutton {
-    padding-left: 9px;
-    padding-right: 9px;
+    min-height: 16px;
+    padding: 5px 6px;
+    border-radius: 0;
   }
 
   &.linked {
@@ -1127,21 +1117,24 @@ combobox {
 
   // newstyle
   popover {
-   padding: 0;
+    padding: 0;
 
-   listview {
+    listview.view {
+      margin: 4px 0;
+      background-color: transparent;
 
-      margin: 8px 0;
+      & > row {
+        min-height: 16px;
+        padding: 5px 6px;
 
-      &>row {
-         padding: 8px;
-
-         &:selected {
+        &:selected {
+          &, &:hover {
             color: $selected_fg_color;
             background-color: $selected_bg_color;
-         }
+          }
+        }
       }
-   }
+    }
 
     // drodowns with searchboxes on top
     .dropdown-searchbar {
@@ -1182,12 +1175,11 @@ combobox {
  ************/
 %toolbar {
   padding: 4px;
-  border-spacing: 4px;
+  border-spacing: 1px;
   background-color: $bg_color;
 }
 
-.toolbar,
-toolbar {
+.toolbar {
   @extend %toolbar;
 
   // on OSD
@@ -1255,13 +1247,12 @@ infobar {
   }
 }
 
-   //close button for info and searchbar
+//close button for info and searchbar
 
-   infobar .close,
-   searchbar .close {
-      @include button(undecorated);
-      @extend %selected_button;
-   }
+infobar > revealer > box > button.close,
+searchbar > revealer > box > button.close {
+  @extend %selected_button_flat;
+}
 
 //
 // Buttons on selected backgrounds
@@ -1274,6 +1265,7 @@ infobar {
     border-color: transparentize($selected_fg_color, 0.5);
   }
 
+  @at-root %selected_button_flat,
   &.flat {
     @include button(undecorated);
     color: $selected_fg_color;
@@ -1314,7 +1306,7 @@ infobar {
  * Title buttons *
  *****************/
 
-windowcontrols {//FIXME these values from adwaita, adjust for Arc?
+windowcontrols {
   border-spacing: 6px;
 
   &:not(.empty) {
@@ -1330,6 +1322,9 @@ windowcontrols {//FIXME these values from adwaita, adjust for Arc?
   }
 
   button {
+    padding: 0;
+    min-width: 24px;
+
     @include button(undecorated);
     background-color: transparentize($header_bg, 1);
 
@@ -1364,8 +1359,6 @@ windowcontrols {//FIXME these values from adwaita, adjust for Arc?
 /***************
  * Header bars *
  ***************/
-$_header_radius: if($variant=='light' or $variant=='lighter', 4px, 3px);//FIXME rename to window_radius as per upstream, move to top?
-
 %titlebar,
 headerbar {
   padding: 0 7px;
@@ -1493,8 +1486,8 @@ headerbar {
   }
 
   switch {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 9px;
+    margin-bottom: 9px;
   }
 }
 
@@ -1523,25 +1516,12 @@ headerbar {
 }
 
 // Development versions of apps to use a differently styled headerbar
-//FIXME needs Arc styling
 window.devel {
   headerbar.titlebar {
-    $c: darken($bg_color, 10%);
-    $gradient: cross-fade(10% -gtk-icontheme("system-run-symbolic"), image(transparent)) 90% 0/256px 256px no-repeat,
-               linear-gradient(to right, transparent 65%, transparentize($selected_bg_color, 0.8)),
-               linear-gradient(to top, darken($c, 3%), $c 3px, lighten($c, 6%));
-    @if $variant == 'dark' {
-      $gradient: cross-fade(10% -gtk-icontheme("system-run-symbolic"), image(transparent)) 90% 0/256px 256px no-repeat,
-                 linear-gradient(to right, transparent 65%, transparentize($selected_bg_color, 0.9)),
-                 linear-gradient(to top, lighten($c, 3%) 3px, lighten($c, 5%));
-    }
-
-    background: $bg_color $gradient;
-
-    &:backdrop {
-      background: $bg_color cross-fade(10% -gtk-icontheme("system-run-symbolic"), image(transparent)) 90% 0/256px 256px no-repeat,
-                  image($bg_color); /* background-color would flash */
-    }
+    background-image: cross-fade(20% -gtk-icontheme("system-run-symbolic"), image(transparent));
+    background-position: 90% 2%;
+    background-size: 256px 256px;
+    background-repeat: no-repeat;
   }
 }
 
@@ -1974,7 +1954,7 @@ treeview.view {
       &:hover {
         @extend %column_header_button;
 
-        color: $selected_bg_color;//FIXME this is the same in GTK3, but :hover effect doesn't seem to work there?
+        color: $selected_bg_color;
         transition: none; //I shouldn't need this
       }
 
@@ -1983,6 +1963,17 @@ treeview.view {
 
         color: $fg_color;
         transition: none; //I shouldn't need this
+      }
+      sort-indicator {
+        &.ascending {
+          -gtk-icon-source: -gtk-icontheme('pan-up-symbolic');
+        }
+        &.descending {
+          -gtk-icon-source: -gtk-icontheme('pan-down-symbolic');
+        }
+
+        min-height: 16px;
+        min-width: 16px;
       }
     }
   }
@@ -2051,17 +2042,17 @@ popover.background {
 
     > list,
     > .view,
-    > toolbar {
+    > .toolbar {
       border-style: none;
       background-color: transparent;
     }
 
     separator {
       background-color: $_popover_bg;
-      margin: 0;
+      margin: 2px 0;
     }
 
-    list separator { margin: 0; }
+    list separator { margin: 2px 0; }
   }
 
   .osd &,
@@ -2077,18 +2068,19 @@ popover.background {
 
   &.touch-selection,
   &.magnifier {
-    //button { @extend %osd_button; }//FIXME from adw
+    button { @extend %osd_button; }
   }
 }
 
+magnifier {
+  background-color: $base_color;
+}
 
 /**********************
  * Popover Base Menus *
  **********************/
-//FIXME still need some work
-$_menu_bg: if($variant!='dark', $base_color, $bg_color);
 
-$_menu-padding: 12px; //inner menuitem padding//FIXME arc paddings??
+$_menu-padding: 8px; //inner menuitem padding
 //global $menu-margin for outside menuitems
 
 popover.menu {
@@ -2097,20 +2089,14 @@ popover.menu {
   box.inline-buttons {
     padding: 0 $_menu-padding;
 
-    button.image-button.model {//FIXME redesign for arc?
-      @include button(undecorated);
+    button.image-button.model {
+      @include button(normal);
 
-      min-height: 30px;
-      min-width: 30px;
-      padding: 0;
-      border: none;
-      outline: none;
-      transition: none;
+      &, &:dir(ltr) { margin-left: 6px; }
+      &:dir(rtl) { margin-right: 6px; }
 
-      &:selected {
-        background: $selected_bg_color;
-        color: $selected_fg_color;
-      }
+      &:focus { @include button(hover); }
+      &:active { @include button(active); }
     }
   }
 
@@ -2121,54 +2107,42 @@ popover.menu {
       @extend %list_button;
 
       padding: 11px;
-      &:focus {
-         background-color: $selected_bg_color;
-         border-color: $selected_bg_color;
-      }
+
+      &:focus { @include button(hover); }
+      &:active { @include button(active); }
     }
-  }
-
-  & > arrow,
-  &.background > contents {
-    background-color: $_menu_bg;
-    padding: 5px;
-  }
-
-  &.background separator {
-    margin: 0;
   }
 
   accelerator {
     color: gtkalpha(currentColor,0.55);
 
-    &:dir(ltr) { margin-left: $_menu-padding; }
-    &:dir(rtl) { margin-right: $_menu-padding; }
+    &:dir(ltr) { margin-left: 22px; }//$_menu-padding;
+    &:dir(rtl) { margin-right: 22px; }//$_menu-padding;
   }
 
   arrow.left,
   radio.left,
   check.left {
-    margin-left: -2px;
-    margin-right: 6px;
+    margin-left: -1px;
+    margin-right: 7px;
   }
 
   arrow.right,
   radio.right,
   check.right {
-    margin-left: 6px;
-    margin-right: -2px;
+    margin-left: 7px;
+    margin-right: -1px;
+  }
+
+  scale {
+    padding: 5px $_menu-padding;
   }
 
   modelbutton {
-    min-height: 30px;
+    min-height: 16px;
     min-width: 40px;
-    padding: 0 $_menu-padding;
-    border-radius: 3px;
-
-    &:selected {
-      color: $selected_fg_color;
-      background-color: $selected_bg_color;
-    }
+    padding: 5px $_menu-padding;
+    border-radius: 2px;
   }
 
   label.title {
@@ -2179,21 +2153,20 @@ popover.menu {
 
 // initial styling for popover menu and bar
 menubar {
-  padding: 0px;
-  box-shadow: inset 0 -1px transparentize(black, 0.9);
+  padding: 0;
+  background-color: opacify($header_bg, 1);
+  color: $header_fg;
 
-  // adjust traditional menubar menu corner radius for Arc
-  popover.menu > contents {
-    border-radius: 0;
+  &:backdrop {
+    color: transparentize($header_fg, 0.3);
   }
 
   > item {
     min-height: 16px;
-    padding: 4px 8px;
+    padding: 4px $_menu-padding;
 
-    &:selected { //Seems like it :hover even with keyboard focus
-      background-color: $selected_bg_color;
-      color: $selected_fg_color;
+    &:selected { //Seems like it :selected even with keyboard focus
+      @extend %selected_items;
     }
 
     &:disabled {
@@ -2202,24 +2175,26 @@ menubar {
     }
   }
 
-  & > item popover.menu.background > contents {
-    padding: 5px;
+  & > item popover.menu modelbutton {
+    border-radius: 0;
   }
+
+  & > item popover.menu.background > contents {
+    padding: 4px 0;
+    border-radius: 2px;
+  }
+
   //nested submenus
   & > item popover.menu popover.menu {
-    padding: 0 0 4px 0;
-  }
-  & > item popover.menu.background popover.menu.background > contents {
-    margin: 0;
-    border-radius: 3px; //including top
+    margin-top: -5px;
   }
 }
 
 /*************
  * Notebooks *
- *************///FIXME cleanup, and maybe restructure
+ *************/
 notebook {
-  //@include focus-ring("> header > tabs > tab:checked", $offset: -2px, $focus-state: 'focus:focus-visible');//FIXME from adw, fix for arc
+  @include focus-ring("> header > tabs > tab:checked", $focus-state: 'focus:focus-visible')
 
   > header {
     padding: 2px;
@@ -2237,8 +2212,6 @@ notebook {
     &.top, &.bottom { padding-left: 0; padding-right: 0; }
     &.left, &.right { padding-top: 0; padding-bottom: 0; }
 
-    //> tabs { margin: -1px; }
-
     &.top {
       padding-bottom: 0;
       border-bottom-style: solid;
@@ -2248,8 +2221,6 @@ notebook {
           padding: 2px 10px;
           min-width: 20px;
           min-height: 20px;
-
-          outline-offset: -4px;//FIXME from arc, still needed?
 
           border: 1px solid transparent;
           border-bottom: none;
@@ -2274,8 +2245,6 @@ notebook {
           min-width: 20px;
           min-height: 20px;
 
-          outline-offset: -4px;//FIXME from arc, still needed?
-
           border: 1px solid transparent;
           border-top: none;
 
@@ -2299,8 +2268,6 @@ notebook {
           min-width: 20px;
           min-height: 20px;
 
-          outline-offset: -4px;//FIXME from arc, still needed?
-
           border: 1px solid transparent;
           border-right: none;
 
@@ -2323,8 +2290,6 @@ notebook {
           padding: 2px 10px;
           min-width: 20px;
           min-height: 20px;
-
-          outline-offset: -4px;//FIXME from arc, still needed?
 
           border: 1px solid transparent;
           border-left: none;
@@ -2397,10 +2362,7 @@ notebook {
       background-color: transparentize($base_color, 1);
       font-weight: normal;
 
-      border-width: 1px;         // for reorderable tabs
-      border-color: transparent; //
-
-      &:hover:not(:checked) {//FIXME add .reorderable-page?
+      &:hover:not(:checked) {
         color: mix($fg_color, $insensitive_fg_color, 50%);
         background-color: transparentize($base_color, 0.5);
         border-color: $borders_color;
@@ -2410,12 +2372,6 @@ notebook {
         color: $fg_color;
         background-color: $base_color;
         border-color: $borders_color;
-        /*&.reorderable-page {/FIXME add .reorderable-page?
-          border-color: transparentize($borders_color, 0.5);
-          background-color: transparentize($bg_color, 0.5);
-
-          &:hover { background-color: transparentize($bg_color, 0.3); }
-        }*/
       }
 
       // colors the button like the label, overridden otherwise
@@ -2425,8 +2381,8 @@ notebook {
 
         padding: 0;
         // FIXME: generalize .small-button?
-        min-width: 16px;//FIXME 20px in adw
-        min-height: 22px;//FIXME 20px in adw
+        min-width: 16px;
+        min-height: 22px;
 
         &:hover {
           @extend %undecorated_button;
@@ -2448,17 +2404,14 @@ notebook {
 /**************
  * Scrollbars *
  **************/
-//FIXME scrollbar mouseover animation looks incorrect
 $scrollbar_bg_color: darken($base_color, 1%);
 
 scrollbar {
   $_slider_min_length: 40px;
   $_slider_width: 6px;
-  $_scrollbar_transition: all 300ms $ease-out-quad;
   $_fine-tune_slider_border: $_slider_width - 3; 
 
   background-color: $scrollbar_bg_color;
-  transition: $_scrollbar_transition;
 
   // scrollbar border
   &.top { border-bottom: 1px solid $borders_color; }
@@ -2474,7 +2427,6 @@ scrollbar {
     border-radius: 8px;
     background-clip: padding-box;
     background-color: mix($fg_color, $bg_color, 40%);
-    transition: $_scrollbar_transition;
 
     &:hover { background-color: mix($fg_color, $bg_color, 30%); }
 
@@ -2532,7 +2484,7 @@ scrollbar {
   &.vertical > range > trough > slider { min-height: $_slider_min_length; }
 }
 
-treeview ~ scrollbar.vertical {//FIXME
+treeview ~ scrollbar.vertical {
   border-top: 1px solid $borders_color;
   margin-top: -1px;
 }
@@ -2540,7 +2492,6 @@ treeview ~ scrollbar.vertical {//FIXME
 /**********
  * Switch *
  **********/
-//FIXME focus-ring in switch (in GTK3 too)??
 //FIXME port asset images to pure CSS (in GTK3 too)??
 switch {
   font-size: 1px;
@@ -2552,7 +2503,7 @@ switch {
   background-repeat: no-repeat;
   background-position: center center;
 
-  //@include focus-ring($offset: 0, $outer: true);//FIXME focus rings for arc
+  @include focus-ring($outer: true);
 
   > slider {
     min-width: 1px;
@@ -2560,10 +2511,13 @@ switch {
   }
 
   &, & > slider {
-    outline-color: transparent;
-    color: transparent;
     border: none;
     box-shadow: none;
+  }
+
+  & > image {
+    outline-color: transparent;
+    color: transparent;
   }
 }
 
@@ -2658,17 +2612,13 @@ checkbutton {
 /************
  * GtkScale *
  ************/
-//FIXME focus rings?
 %scale_trough {
-  $_scale_trough_bg: if($variant != 'dark', $button_border, darken($bg_color, 5%));
-
-  outline-offset: 2px;//FIXME from arc gtk3, still needed?
-
+  border: none;
   border-radius: 2.5px;
-  background-color: $_scale_trough_bg;
+  background-color: $scale_trough_bg;
 
   &:disabled {
-   background-color: transparentize($_scale_trough_bg, 0.45);
+   background-color: transparentize($scale_trough_bg, 0.45);
   }
 
   // ...on selected list-rows and infobars
@@ -2684,13 +2634,14 @@ checkbutton {
 
   // OSD
   .osd & {
-    background-color: lighten($osd_bg_color, 7%);
+    background-color: if($variant == 'lighter', $osd_button_border, lighten($osd_bg_color, 7%));
 
     &:disabled {  }
   }
 }
 
 %scale_highlight {
+  border: none;
   border-radius: 2.5px;
   background-color: $selected_bg_color;
 
@@ -2724,7 +2675,7 @@ scale {
   min-width: 15px;
   padding: 3px;
 
-  //@include focus-ring("> trough", $offset: 10px);//FIXME fix for arc
+  @include focus-ring();
 
   // the slider is inside the trough, so to have make it bigger there's a negative margin
   > trough {
@@ -2926,51 +2877,59 @@ scale {
     transform: rotate(135deg);
   }
 
-  //FIXME do proper color slider design for arc? add trough?
   &.color {
     min-height: 0;
     min-width: 0;
 
-    > trough {//FIXME
-    //  background-image: image($borders_color);
-    //  background-repeat: no-repeat;
+    > trough {
+      background-image: image($scale_trough_bg);
+      background-repeat: no-repeat;
+      border: 1px solid $scale_trough_bg;
+      min-height: 13px;
+      min-width: 13px;
+    }
+
+    > trough > slider {
+      &:hover, &:backdrop, &:disabled, &:backdrop:disabled, & {
+        margin: -8px;
+      }
     }
 
     &.horizontal {
       padding: 0 0 15px 0;
 
-      /*> trough {//FIXME
+      > trough {
         padding-bottom: 4px;
         background-position: 0 -3px;
         border-top-left-radius: 0;
         border-top-right-radius: 0;
-      }*/
+      }
 
       > trough > slider {
-        &:dir(ltr), &:dir(rtl) { // specificity bump
+        &:dir(ltr), &:dir(rtl), & { // specificity bump
           &:hover, &:backdrop, &:disabled, &:backdrop:disabled, & {
-            margin-bottom: -15px;
-            margin-top: 6px;
+            margin-bottom: -14px;
+            margin-top: 5px;
           }
         }
       }
     }
 
     &.vertical {
-      &:dir(ltr) {
+      &:dir(ltr), & {
         padding: 0 0 0 15px;
 
-        /*> trough {//FIXME
+        > trough {
           padding-left: 4px;
           background-position: 3px 0;
           border-bottom-right-radius: 0;
           border-top-right-radius: 0;
-        }*/
+        }
 
         > trough > slider {
           &:hover, &:backdrop, &:disabled, &:backdrop:disabled, & {
-            margin-left: -15px;
-            margin-right: 6px;
+            margin-left: -13px;
+            margin-right: 4px;
           }
         }
       }
@@ -2978,17 +2937,17 @@ scale {
       &:dir(rtl) {
         padding: 0 15px 0 0;
 
-        /*> trough {//FIXME
+        > trough {
           padding-right: 4px;
           background-position: -3px 0;
           border-bottom-left-radius: 0;
           border-top-left-radius: 0;
-        }*/
+        }
 
         > trough > slider {
           &:hover, &:backdrop, &:disabled, &:backdrop:disabled, & {
-            margin-right: -15px;
-            margin-left: 6px;
+            margin-right: -13px;
+            margin-left: 4px;
           }
         }
       }
@@ -2996,47 +2955,47 @@ scale {
 
     &.fine-tune {
       &.horizontal {
-        &:dir(ltr), &:dir(rtl) { // specificity bump
-          padding: 0 0 12px 0;
+        &:dir(ltr), &:dir(rtl), & { // specificity bump
+          padding: 0 0 13px 0;
 
-          > trough {//FIXME
-          //  padding-bottom: 7px;
-          //  background-position: 0 -6px;
+          > trough {
+            padding-bottom: 6px;
+            background-position: 0 -5px;
           }
 
           > trough > slider {
-            margin-bottom: -15px;
-            margin-top: 6px;
+            margin-bottom: -14px;
+            margin-top: 5px;
           }
         }
       }
 
       &.vertical {
-        &:dir(ltr) {
-          padding: 0 0 0 12px;
+        &:dir(ltr), & {
+          padding: 0 0 0 13px;
 
-          > trough {//FIXME
-          //  padding-left: 7px;
-          //  background-position: 6px 0;
+          > trough {
+            padding-left: 6px;
+            background-position: 5px 0;
           }
 
           > trough > slider {
-            margin-left: -15px;
-            margin-right: 6px;
+            margin-left: -13px;
+            margin-right: 4px;
           }
         }
 
         &:dir(rtl) {
-          padding: 0 12px 0 0;
+          padding: 0 13px 0 0;
 
-          > trough {//FIXME
-          //  padding-right: 7px;
-          //  background-position: -6px 0;
+          > trough {
+            padding-right: 6px;
+            background-position: -5px 0;
           }
 
           > trough > slider {
-            margin-right: -15px;
-            margin-left: 6px;
+            margin-right: -13px;
+            margin-left: 4px;
           }
         }
       }
@@ -3063,10 +3022,6 @@ progressbar {
     }
   }
 
-  &.horizontal > trough > progress { margin: 0 -1px; } // the progress node is positioned after the trough border
-  &.vertical > trough > progress { margin: -1px 0; }   // this moves it over it.
-
-
   // FIXME: insensitive state missing and some other state should be set probably
   padding: 0;
   font-size: smaller;
@@ -3076,18 +3031,16 @@ progressbar {
   > trough {
     @extend %scale_trough;
 
-    border: none;
     border-radius: 3px;
   }
 
   > trough > progress {
     @extend %scale_highlight;
 
-    border: none;
     border-radius: 3px;
   }
 
-  &.osd { // progressbar.osd used for epiphany page loading progress//FIXME style for arc
+  &.osd { // progressbar.osd used for epiphany page loading progress
     min-width: 3px;
     min-height: 3px;
     background-color: transparent;
@@ -3183,7 +3136,7 @@ window.dialog.print {
 
     paper {
       background: white;
-      color: #2e3436; //FIXME hardcoded color from adwaita
+      color: #5c616c;
       border: 1px solid $borders_color;
     }
 
@@ -3211,8 +3164,12 @@ frame {
 
 actionbar > revealer > box {
   padding: 5px;
-  border-spacing: 5px;
   border-top: 1px solid $borders_color;
+  background-color: darken($bg_color, 3%);
+
+  &, > box.start, > box.end {
+    border-spacing: 6px;
+  }
 }
 
 scrolledwindow {
@@ -3450,17 +3407,21 @@ calendar {
   border: 1px solid $borders_color;
   border-radius: 3px;
   padding: 2px;
+  font-feature-settings: "tnum";
 
   > header {
     color: $fg_color;
     border: none;
 
     > button {
-      @extend %undecorated_button;
+      &, &:hover, &:active, &:disabled {
+        @extend %undecorated_button;
+      }
 
       color: transparentize($fg_color,0.55);
 
       &:hover { color: $fg_color; }
+      &:active { color: $selected_bg_color; }
       &:disabled { color: $insensitive_fg_color; }
     }
   }
@@ -3507,9 +3468,14 @@ window.dialog.message { // Message Dialog styling
     background-image: none;
     background-color: $header_bg;
     border-bottom: 1px solid darken($header_bg, 7%);
+    border-top-left-radius: $header_radius;
+    border-top-right-radius: $header_radius;
   }
 
+  .dialog-action-area button { padding: 8px; min-height: 0; }
+
   box.dialog-vbox.vertical {
+    padding-top: 10px;
     border-spacing: 10px;
   }
 
@@ -3525,17 +3491,20 @@ window.dialog.message { // Message Dialog styling
       border: none;
     }
 
+    .dialog-action-area { @include linking_rules(); }
+
     .dialog-action-area button {
-      padding: 10px 14px; // labels are not vertically centered on message dialog, this is a workaround
       border-radius: 0;
       border-bottom-style: none;
+      border-right-style: none;
 
       &:first-child{
-        border-bottom-left-radius: 7px;
+        border-bottom-left-radius: 2px;
+        border-left-style: none;
       }
 
       &:last-child {
-        border-bottom-right-radius: 7px;
+        border-bottom-right-radius: 2px;
       }
     }
   }
@@ -3618,9 +3587,6 @@ stacksidebar {
     &:selected:hover:dir(ltr), &:selected:hover:dir(rtl) {
       background-color: mix(black, $selected_bg_color, 10%);
     }
-    //&.activatable:active, &.activatable:selected:active {//FIXME
-    //  box-shadow: none; // #3413
-    //}
   }
 }
 
@@ -3841,7 +3807,11 @@ tooltip {
     background-clip: padding-box;
   }
 
-  padding: 4px;//FIXME differs visually from GTK3???
+  &.background, & {
+    color: $osd_fg_color;
+  }
+
+  padding: 4px;
   border-radius: 2px;
 
   > box {
@@ -3858,7 +3828,7 @@ colorswatch {
   // is colorswatch overlay {}, colorswatch has the programmatically set background, so most of the style is
   // applied to the overlay box.
 
-  //@include focus-ring($width: 4px, $offset: -2px);//FIXME fix for arc
+  @include focus-ring();
 
   &:drop(active), & { border-style: none; } // FIXME: implement a proper drop(active) state
 
@@ -3935,19 +3905,15 @@ colorswatch {
     }
   }
 
-  &:drop(active) {//FIXME need arc design
+  &:drop(active) {
     box-shadow: none;
 
     &.light > overlay {
       border-color: $drop_target_color;
-      box-shadow: inset 0 0 0 2px if($variant == 'light', darken($drop_target_color, 7%), $borders_color),
-                  inset 0 0 0 1px $drop_target_color;
     }
 
     &.dark > overlay {
       border-color: $drop_target_color;
-      box-shadow: inset 0 0 0 2px if($variant == 'light', transparentize(black, 0.7), $borders_color),
-                  inset 0 0 0 1px $drop_target_color;
     }
   }
 
@@ -3992,7 +3958,7 @@ colorswatch {
 }
 
 plane {
-  //@include focus-ring($offset: 2px, $outer: true);//FIXME fix for arc
+  @include focus-ring();
 }
 
 // colorscale popup
@@ -4039,24 +4005,19 @@ colorchooser .popover.osd { border-radius: 3px; }
 /**********************
  * Window Decorations *
  *********************/
-//FIXME needs testing and some fixes for arc
+
+// this needs to be transparent, see bug #722563
 $_wm_border: if($variant!='dark', transparentize(black, 0.9), transparentize(black, 0.45));
 
 window {
   // lamefun trick to get rounded borders regardless of CSD use
   border-width: 0px;
 
-  // this needs to be transparent
-  // see bug #722563
-//FIXME $_wm_border now working from here for some reason, moved above
-//  $_wm_border: if($variant!='dark', transparentize(black, 0.9), transparentize(black, 0.45));
-//  $_wm_border_backdrop: if($variant == 'dark' or $variant == 'darker', transparentize(darken($header_bg, 7%), 0.1), $_wm_border);
-
   &.csd {
     box-shadow: 0 0 0 1px if($variant == 'dark' or $variant == 'darker', darken($header_bg, 7%), $_wm_border),
-              0 8px 8px 0 if($variant !='dark', opacify($_wm_border, 0.1), transparentize($_wm_border, 0.2));
+                0 8px 8px 0 if($variant !='dark', opacify($_wm_border, 0.1), transparentize($_wm_border, 0.2));
     margin: 0px;
-    border-radius: if($variant=='light' or $variant=='lighter', 4px 4px 0 0, 3px 3px 0 0);
+    border-radius: $header_radius $header_radius 0 0;
     &:backdrop {
       // the transparent shadow here is to enforce that the shadow extents don't
       // change when we go to backdrop, to prevent jumping windows.
@@ -4075,46 +4036,41 @@ window {
     }
 
     &.dialog.message {
-      border-radius: 3px;
-      box-shadow: none;//FIXME looks right????
+      border-radius: $header_radius $header_radius 2px 2px;
     }
   }
 
   &.solid-csd {
     margin: 1px;
-    padding: 4px;//FIXME ??? https://gitlab.gnome.org/GNOME/gtk/-/commit/f8dcda80cfec7e68e1c231ae77039dec1ddbd694
-    //border: solid 1px $borders_color;
+    padding: 0;
     border-radius: 0;
-//    box-shadow: inset 0 0 0 4px $borders_color, inset 0 0 0 3px $headerbar_bg_color, inset 0 1px $top_hilight;//FIXME Arc styling, https://gitlab.gnome.org/GNOME/gtk/-/commit/da4e2a29763f5fcc314da992c4b24763247c6211
+    background-color: $header_bg;
     box-shadow: none;
-
-//    &:backdrop { box-shadow: inset 0 0 0 4px $borders_color, inset 0 0 0 3px $backdrop_bg_color, inset 0 1px $top_hilight; }//FIXME Arc styling, https://gitlab.gnome.org/GNOME/gtk/-/commit/da4e2a29763f5fcc314da992c4b24763247c6211
   }
 
   &.maximized,
   &.fullscreen { border-radius: 0; box-shadow: none; }
 
-  //FIXME arc design for these
   &.tiled,
   &.tiled-top,
   &.tiled-left,
   &.tiled-right,
   &.tiled-bottom {
     border-radius: 0;
-    box-shadow: 0 0 0 1px $_wm_border, //_backdrop,
+    box-shadow: 0 0 0 1px if($variant == 'dark' or $variant == 'darker', darken($header_bg, 7%), $_wm_border),
                 0 0 0 20px transparent; //transparent control workaround -- GTK issue #3670
-  }
-  &:backdrop {
-    box-shadow: 0 0 0 1px $_wm_border, //_backdrop,
-                0 0 0 20px transparent; // GTK issue #3670
+
+    &:backdrop {
+      box-shadow: 0 0 0 1px if($variant == 'dark' or $variant == 'darker', darken($header_bg, 7%), $_wm_border),
+                  0 0 0 20px transparent; // GTK issue #3670
+    }
   }
 
-
-  &.popup { box-shadow: none; }
+  &.popup { border-radius: 0; box-shadow: none; }
 
   // server-side decorations as used by mutter
   &.ssd { //just doing borders, wm draws actual shadows
-    border-radius: if($variant=='light' or $variant=='lighter', 4px 4px 0 0, 3px 3px 0 0);
+    border-radius: $header_radius $header_radius 0 0;
     box-shadow: 0 0 0 1px if($variant == 'dark' or $variant == 'darker', transparentize(black, 0.35), $_wm_border);
 
     &.maximized { border-radius: 0; }
@@ -4239,68 +4195,44 @@ stackswitcher.circular {
 /*************
  * App Icons *
  *************/
-//FIXME Needs Arc design
 /* Outline for low res icons */
 .lowres-icon {
-    -gtk-icon-shadow: 0 -1px rgba(0,0,0,0.05),
-      1px 0 rgba(0,0,0,0.1),
-      0 1px rgba(0,0,0,0.3),
-      -1px 0 rgba(0,0,0,0.1);
+  -gtk-icon-shadow: none;
 }
 
 /* Drapshadow for large icons */
 .icon-dropshadow {
-  -gtk-icon-shadow: 0 1px 12px rgba(0,0,0,0.05),
-      0 -1px rgba(0,0,0,0.05),
-      1px 0 rgba(0,0,0,0.1),
-      0 1px rgba(0,0,0,0.3),
-      -1px 0 rgba(0,0,0,0.1);
+  -gtk-icon-shadow: none;
 }
 
 /*********
  * Emoji *
  ********/
-//FIXME Needs Arc design
 
 popover.emoji-picker > contents {
   padding: 0;
 }
 
 .emoji-searchbar {
-  padding: 6px;
+  padding: 5px;
   border-spacing: 6px;
   border-bottom: 1px solid $borders_color;
 }
 
 .emoji-toolbar {
-  padding: 6px;
+  padding: 5px;
   border-spacing: 6px;
   border-top: 1px solid $borders_color;
 }
 
 button.emoji-section {
-  border-color: transparent;
-  border-width: 3px;
-  border-style: none none solid;
-  border-radius: 0;
-
-  padding: 3px 0 0;
-  min-width: 32px;
-  min-height: 28px;
-
-  /* reset props inherited from the button style */
-  background: none;
-  box-shadow: none;
-  text-shadow: none;
-
-  &:hover { border-color: if($variant == 'light', $borders_color, transparentize($fg_color, .9)); }
-  &:checked { border-color: $selected_bg_color; }
+  &:active, &:checked { border-color: transparent; }
 }
 
 popover.emoji-picker emoji {
   font-size: x-large;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 5px;
+  border-radius: 2px;
 
   &:focus,
   &:hover {
@@ -4309,8 +4241,8 @@ popover.emoji-picker emoji {
 }
 
 emoji-completion-row > box {
-  border-spacing: 10px;
-  padding: 2px 10px;
+  border-spacing: 8px;
+  padding: 2px 8px;
 }
 
 emoji-completion-row:focus,
@@ -4321,7 +4253,6 @@ emoji-completion-row:hover {
 
 emoji-completion-row emoji:focus,
 emoji-completion-row emoji:hover {
-//  background-color: $menu_selected_color;
   background-color: $selected_bg_color;
   color: $selected_fg_color;
 }
@@ -4331,6 +4262,32 @@ popover.entry-completion > contents {
 }
 
 statusbar {
-  padding: 6px 10px 6px 10px;
+  padding: 5px 8px 5px 8px;
+}
+
+menubutton {
+  > button > box {
+    border-spacing: 6px;
+  }
+
+  arrow {
+    min-height: 16px;
+    min-width: 16px;
+    &.none {
+      -gtk-icon-source: -gtk-icontheme('open-menu-symbolic');
+    }
+    &.down {
+      -gtk-icon-source: -gtk-icontheme('pan-down-symbolic');
+    }
+    &.up {
+      -gtk-icon-source: -gtk-icontheme('pan-up-symbolic');
+    }
+    &.left {
+      -gtk-icon-source: -gtk-icontheme('pan-start-symbolic');
+    }
+    &.right {
+      -gtk-icon-source: -gtk-icontheme('pan-end-symbolic');
+    }
+  }
 }
 

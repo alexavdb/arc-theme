@@ -1,8 +1,11 @@
 project(
   'arc-theme',
-  version : '20220105',
+  version : '20220223',
   meson_version: '>= 0.53.0',
-  license : 'GPL3'
+  license : 'GPL3',
+  default_options : [
+    'debug=false'
+  ]
 )
 
 fs = import('fs')
@@ -28,6 +31,11 @@ install_dir = {
 foreach theme : ['cinnamon', 'gnome-shell', 'gtk3', 'gtk4']
   if theme in get_option('themes')
     sassc = find_program('sassc')
+    if get_option('debug')
+      sassc_options = ['--line-numbers', '--style', 'nested']
+    else
+      sassc_options = ['--style', 'compact']
+    endif
     break
   endif
 endforeach
@@ -37,7 +45,7 @@ foreach theme : ['gtk2', 'gtk3', 'gtk4', 'xfwm']
   if theme in get_option('themes')
     inkscape = find_program('inkscape', required : false)
     if inkscape.found()
-      inkscape_ver = run_command(inkscape, '--version').stdout().split()[1]
+      inkscape_ver = run_command(inkscape, '--version', check : true).stdout().split()[1]
     endif
     break
   endif

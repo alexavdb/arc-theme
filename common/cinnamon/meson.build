@@ -7,7 +7,7 @@ cinnamon = find_program('cinnamon', required : false)
 if get_option('cinnamon_version') != ''
   cinnamon_full_ver = get_option('cinnamon_version')
 elif cinnamon.found()
-  cinnamon_full_ver = run_command(cinnamon, '--version').stdout().split()[-1]
+  cinnamon_full_ver = run_command(cinnamon, '--version', check : true).stdout().split()[-1]
 else
   error('Could not determine Cinnamon version')
 endif
@@ -61,7 +61,7 @@ foreach variant : get_option('variants')
     output_css,
     input : input_scss,
     output : output_css,
-    command : [sassc, '@INPUT@', '@OUTPUT@'],
+    command : [sassc, sassc_options, '@INPUT@', '@OUTPUT@'],
     build_by_default : true,
     depend_files : sass_depend_files
   )

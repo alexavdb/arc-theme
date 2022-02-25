@@ -819,8 +819,7 @@ modelbutton.flat {
 
   @extend %undecorated_button;
 
-  &:hover { background-color: if($variant!='dark', mix($fg_color,$bg_color,5%), mix($fg_color,$bg_color,10%)); }
-  &:active, &:selected { &, arrow { @extend %selected_items; } }
+  &:hover, &:active, &:selected { &, arrow { @extend %selected_items; } }
   &:checked { color: $fg_color; }
 
   // FIXME: temporary workaround
@@ -1133,9 +1132,17 @@ headerbar,
     .maximized & { background-color: opacify($selection_mode_bg, 1); }
   }
 
-  .tiled &, .tiled &:backdrop,
-  .maximized &, .maximized &:backdrop {
-    border-radius: 0; // squared corners when the window is max'd or tiled
+  // squared corners when the window is maximized, tiled, or fullscreen
+  .tiled &,
+  .tiled-top &,
+  .tiled-right &,
+  .tiled-bottom &,
+  .tiled-left &,
+  .maximized &,
+  .fullscreen & {
+    &:backdrop, & {
+      border-radius: 0;
+    }
   }
 
   .maximized & {
@@ -1178,8 +1185,13 @@ headerbar {
     &, &:backdrop {
       border-top-left-radius: $_header_radius;
 
+      .tiled &,
+      .tiled-top &,
+      .tiled-right &,
+      .tiled-bottom &,
+      .tiled-left &,
       .maximized &,
-      .tiled & { border-radius: 0; }
+      .fullscreen & { border-radius: 0; }
     }
   }
 
@@ -1187,8 +1199,13 @@ headerbar {
     &, &:backdrop {
       border-top-right-radius: $_header_radius;
 
+      .tiled &,
+      .tiled-top &,
+      .tiled-right &,
+      .tiled-bottom &,
+      .tiled-left &,
       .maximized &,
-      .tiled & { border-radius: 0; }
+      .fullscreen & { border-radius: 0; }
     }
   }
 
@@ -2079,6 +2096,10 @@ scrollbar {
   &.vertical slider { min-height: $_slider_min_length; }
 }
 
+treeview ~ scrollbar.vertical {
+  border-top: 1px solid $borders_color;
+}
+
 //
 // Switches
 //
@@ -2098,10 +2119,13 @@ switch {
   }
 
   &, slider {
-    outline-color: transparent;
-    color: transparent;
     border: none;
     box-shadow: none;
+  }
+
+  & > image {
+    outline-color: transparent;
+    color: transparent;
   }
 }
 
@@ -2159,6 +2183,8 @@ switch {
     // too similar in luminosity to the selected background color, hence
     // we need special casing.
     menuitem #{$w}#{$s}:hover,
+    modelbutton #{$w}#{$s}:hover,
+    modelbutton #{$w}#{$s}:active,
     .view #{$w}#{$s}:selected,
     treeview.#{$w}#{$s}:selected,
     row:selected #{$w}#{$s},
@@ -2257,7 +2283,7 @@ scale {
 
     //OSD troughs
     .osd & {
-      background-color: lighten($osd_bg_color, 7%);
+      background-color: if($variant == 'lighter', $osd_button_border, lighten($osd_bg_color, 7%));
 
       highlight {
         background-color: $selected_bg_color;
@@ -2697,6 +2723,10 @@ messagedialog { // Message Dialog styling
   }
 
   .dialog-action-area button { padding: 8px; min-height: 0; }
+
+  box.dialog-vbox.vertical {
+    padding-top: 10px;
+  }
 
   &.csd { // rounded bottom border styling for csd version
     &.background {
@@ -3249,9 +3279,24 @@ decoration {
 
     transition: $backdrop_transition;
   }
-  .fullscreen &,
-  .tiled & {
+  .maximized &,
+  .fullscreen & {
     border-radius: 0;
+    box-shadow: none;
+  }
+  .tiled &,
+  .tiled-top &,
+  .tiled-right &,
+  .tiled-bottom &,
+  .tiled-left & {
+    border-radius: 0;
+    box-shadow: 0 0 0 1px if($variant == 'dark' or $variant == 'darker', darken($header_bg, 7%), $_wm_border),
+                0 0 0 20px transparent; //transparent control workaround -- GTK issue #3670
+
+    &:backdrop {
+      box-shadow: 0 0 0 1px if($variant == 'dark' or $variant == 'darker', darken($header_bg, 7%), $_wm_border),
+                  0 0 0 20px transparent; // GTK issue #3670
+    }
   }
   .popup & {
     box-shadow: none;
@@ -3319,6 +3364,9 @@ headerbar,
 
       &:backdrop { opacity: 1; }
     }
+
+    & > image { opacity: 0; }
+
     // Load png assets for each button
     @each $k in ('close','maximize', 'minimize') {
       @each $l, $m in ('',''), (':backdrop','-backdrop'), (':hover','-hover'), (':active','-active') {
