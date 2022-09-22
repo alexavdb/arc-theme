@@ -524,6 +524,13 @@ StScrollBar {
 }
 
 //
+// Access portal dialog
+//
+.access-dialog {
+  text-align: center;
+}
+
+//
 // Popvers/Menus
 //
 
@@ -702,6 +709,7 @@ $_popup_submenu_border_color: if($variant!='dark', rgba(0, 0, 0, 0.1), rgba(0, 0
 // OSD
 //
 .osd-window {
+  padding: 10px;
   text-align: center;
   font-weight: bold;
   margin: 4em;
@@ -838,6 +846,7 @@ $ws_dot_inactive: $ws_indicator_height / 6;
 
 .workspace-switcher {
   @extend %shell_osd;
+  padding: 10px;
   margin: 4em;
   spacing: 8px;
 }
@@ -1655,7 +1664,7 @@ $window_close_button_padding: 0;
 
 .nm-dialog-scroll-view {
   border: 1px solid $borders_color;
-  padding: 5px;
+  padding: 0;
   border-radius: 2px;
   background-color: $base_color;
 }
@@ -1668,6 +1677,7 @@ $window_close_button_padding: 0;
 
   &:selected {
     background-color: $selected_bg_color;
+    border-radius: 0;
     color: $selected_fg_color;
   }
   &:hover {
@@ -2246,6 +2256,7 @@ $_dash_bottom_margin: 20px;
     marging: 0;
     padding: 4px 4px 5px;
     min-height: 0;
+    border-radius: 2px !important;
     font-weight: normal !important;
     @extend %button;
 
@@ -2756,7 +2767,9 @@ $_dash_bottom_margin: 20px;
 }
 
 .unlock-dialog-notification-label {
-  padding: 0px 0px 0px 12px;
+  padding-left: 12px;
+  padding-right: 0;
+  &:rtl { padding-right: 12px; padding-left: 0; }
 }
 
 .unlock-dialog-notification-count-text {
