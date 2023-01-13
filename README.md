@@ -8,7 +8,7 @@ This fork aims to keep the theme updated with new toolkit and desktop environmen
 
 ## Disclaimer
 
-This fork modifies the (transparent) Arc-Dark variant for GTK 2 and GTK 3 to a colour scheme based on [Zenburn](https://kippura.org/zenburnpage/).
+This particular fork modifies the colour scheme for the GTK 2 and GTK 3 variants to one inspired by the [Modus themes](https://protesilaos.com/emacs/modus-themes) for Emacs.
 
 The performed changes may have side effects on other variants or toolkits.
 

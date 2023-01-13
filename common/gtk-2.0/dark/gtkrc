@@ -1,17 +1,17 @@
-gtk-color-scheme = "base_color: #3f3f3f"
-gtk-color-scheme = "text_color: #dcdccc"
-gtk-color-scheme = "bg_color: #464646"
-gtk-color-scheme = "fg_color: #dcdccc"
-gtk-color-scheme = "tooltip_bg_color: #4B5162"
+gtk-color-scheme = "base_color: #000000" # bg-main
+gtk-color-scheme = "text_color: #ffffff" # fg-main
+gtk-color-scheme = "bg_color: #000000"
+gtk-color-scheme = "fg_color: #ffffff"
+gtk-color-scheme = "tooltip_bg_color: #392a48" # bg-special-calm
 gtk-color-scheme = "tooltip_fg_color: #ffffff"
-gtk-color-scheme = "selected_bg_color: #8faf9F"
-gtk-color-scheme = "selected_fg_color: #000d18"
-gtk-color-scheme = "insensitive_bg_color: #343434"
-gtk-color-scheme = "insensitive_fg_color: #dcdccc"
-gtk-color-scheme = "notebook_bg: #3f3f3f"
-gtk-color-scheme = "dark_sidebar_bg: #464646"
-gtk-color-scheme = "link_color: #5294e2"
-gtk-color-scheme = "menu_bg: #464646"
+gtk-color-scheme = "selected_bg_color: #2a2a66" # bg-active-accent
+gtk-color-scheme = "selected_fg_color: #ffffff"
+gtk-color-scheme = "insensitive_bg_color: #100f10" # bg-dim
+gtk-color-scheme = "insensitive_fg_color: #e0e6f0" # fg-dim
+gtk-color-scheme = "notebook_bg: #000000"
+gtk-color-scheme = "dark_sidebar_bg: #191a1b" # bg-alt
+gtk-color-scheme = "link_color: #2fafff" # blue
+gtk-color-scheme = "menu_bg: #191a1b"
 
 gtk-icon-sizes = "gtk-button=16,16" # This makes button icons smaller.
 gtk-auto-mnemonics = 1
